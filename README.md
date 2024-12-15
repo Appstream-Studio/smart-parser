@@ -39,9 +39,10 @@ Example appsettings.json:
 }
 ```
 # Usage
-
+Once you've configured SmartParser in your project, parsing is straightforward. Whether you're working with unstructured text or scanned images, SmartParser can help produce typed objects tailored to your needs.
 
 ## Text
+Simply pass your raw text content along with any guiding considerations, and SmartParser will return a typed object reflecting the extracted information.
 
 ```C#
 public class SimpleResult
