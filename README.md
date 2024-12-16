@@ -8,7 +8,7 @@
 # Setup & Installation
 
 ## Prerequisites:
-- .NET 6.0 or later
+- .NET 9.0 or later
 - Access to an OpenAI API key (or other compatible LLM provider)
 
 ## Installation:
