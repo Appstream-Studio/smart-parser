@@ -16,6 +16,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E6C80E03-120
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppStream.SmartParser.Polly", "src\AppStream.SmartParser.Polly\AppStream.SmartParser.Polly.csproj", "{EFC5FFD6-F480-4E64-8059-CBFDC18FE035}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{1BC4D556-46C9-4C1D-820E-AC5D8DEF5B1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplestUseCase", "samples\SimplestUseCase\SimplestUseCase.csproj", "{19E297B3-6005-40D5-8D1C-828BA8256822}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +34,10 @@ Global
 		{EFC5FFD6-F480-4E64-8059-CBFDC18FE035}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFC5FFD6-F480-4E64-8059-CBFDC18FE035}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFC5FFD6-F480-4E64-8059-CBFDC18FE035}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19E297B3-6005-40D5-8D1C-828BA8256822}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19E297B3-6005-40D5-8D1C-828BA8256822}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19E297B3-6005-40D5-8D1C-828BA8256822}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19E297B3-6005-40D5-8D1C-828BA8256822}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -37,5 +45,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{E91EDDA5-6F25-4784-90F5-D3E471E61CD8} = {E6C80E03-120A-4A47-970C-7BAACD2265B3}
 		{EFC5FFD6-F480-4E64-8059-CBFDC18FE035} = {E6C80E03-120A-4A47-970C-7BAACD2265B3}
+		{19E297B3-6005-40D5-8D1C-828BA8256822} = {1BC4D556-46C9-4C1D-820E-AC5D8DEF5B1D}
 	EndGlobalSection
 EndGlobal

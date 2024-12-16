@@ -108,7 +108,7 @@ public class Example
             - Keep the output factual.
             - If a title isn't clearly stated, set it to null.
             - Keep the summary as concise as possible.
-            """
+            """,
             cancellationToken);
 
         if (result == null)
