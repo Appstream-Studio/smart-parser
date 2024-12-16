@@ -21,7 +21,6 @@ public static class SmartParserModule
                 .ValidateOnStart();
 
             moduleServices
-                .AddMemoryCache()
                 .AddScoped<IJsonSchemaGenerator, JsonSchemaGenerator>()
                 .AddScoped<ISmartParser, SmartParser>()
                 .AddScoped<OpenAIClient>(sp =>
