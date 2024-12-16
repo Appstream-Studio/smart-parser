@@ -3,7 +3,7 @@
 [![NuGet Package](https://img.shields.io/nuget/v/appstream.smartparser.svg)](https://www.nuget.org/packages/AppStream.SmartParser/)
 
 # SmartParser
-<b>SmartParser</b> is an open-source utility library designed to transform unstructured data—such as raw text or images—into structured, strongly-typed objects. By leveraging the power of Large Language Models (LLMs) like those from OpenAI, Smart-Parser helps you integrate AI-driven content parsing directly into your workflows or applications.
+<b>SmartParser</b> is an open-source utility library designed to transform unstructured data — such as raw text or images — into structured, strongly-typed objects. By leveraging the power of Large Language Models (LLMs) like those from OpenAI, Smart-Parser helps you integrate AI-driven content parsing directly into your workflows or applications.
 
 # Setup & Installation
 
@@ -18,26 +18,51 @@ Add the Smart-Parser package via NuGet:
 dotnet add package AppStream.SmartParser
 ```
 
-## Configure Services
+## Configure Services and Settings
+
+### Code-Based Configuration
 
 ```C#
-builder.Services
-    .AddSmartParser()
+services.AddSmartParser(options =>
+{
+    options.DeploymentName = "MyDeployment";
+    options.OpenAiEndpoint = "https://your-openai-endpoint.azure.com/";
+    options.OpenAiCredentialKey = "my-key";
+});
 ```
 
-## Configure Settings
+### Environment Variables
 
-Example appsettings.json:
+```C#
+services.AddSmartParser(options =>
+{
+    options.DeploymentName = Environment.GetEnvironmentVariable("DEPLOYMENT_NAME") ?? "DefaultDeployment";
+    options.OpenAiEndpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://your-openai-endpoint.azure.com/";
+    options.OpenAiCredentialKey = Environment.GetEnvironmentVariable("OPENAI_CREDENTIAL_KEY") ?? "default-key";
+});
+```
 
+### AppSettings File
+
+`appsettings.json` sample:
 ```json
 {
   "SmartParser": {
-    "DeploymentName": "my-gpt-deployment",
+    "DeploymentName": "MyDeployment",
     "OpenAiEndpoint": "https://your-openai-endpoint.azure.com/",
-    "OpenAiCredentialKey": "your-api-key"
+    "OpenAiCredentialKey": "my-key"
   }
 }
 ```
+
+```C#
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .Build();
+
+services.AddSmartParser(configuration.GetSection("SmartParser").Bind);
+```
+
 # Usage
 Once you've configured SmartParser in your project, parsing is straightforward. Whether you're working with unstructured text or scanned images, SmartParser can help produce typed objects tailored to your needs.
 
@@ -53,7 +78,6 @@ public class SimpleResult
     public string Summary { get; set; } = "";
 }
 
-// Usage example
 public class Example
 {
     private readonly SmartParser _smartParser;
@@ -63,10 +87,10 @@ public class Example
         _smartParser = smartParser;
     }
 
-    public async Task RunAsync(CancellationToken ct)
+    public async Task RunAsync(CancellationToken cancellationToken)
     {
         // Input text might be unstructured content describing a person
-        var inputText = @"
+        var inputText = """
             John Doe is a 29-year-old software engineer who specializes in building 
             cross-platform mobile applications. He has worked at several leading 
             tech companies and contributed to a wide range of open-source projects.
@@ -75,19 +99,17 @@ public class Example
             that help everyday users understand complex data. He occasionally speaks 
             at industry conferences, discussing user experience and modern development 
             practices.
-        ";
+            """;
 
-        // Considerations (optional hints) for the parser:
-        // - Keep information factual
-        // - Title can be null if it can't be inferred
-        // - Summary should be short
         var result = await _smartParser.ParseAsync<SimpleResult>(
-            inputText, 
-            ct, 
-            "Keep the output factual.",
-            "If a title isn't clearly stated, set it to null.",
-            "Keep the summary as concise as possible."
-        );
+            inputText,
+            // Considerations (optional hints) for the parser:
+            """
+            - Keep the output factual.
+            - If a title isn't clearly stated, set it to null.
+            - Keep the summary as concise as possible.
+            """
+            cancellationToken);
 
         if (result == null)
         {
@@ -113,10 +135,11 @@ var cvImageUrl = "https://example.com/cv.jpg";
 
 var result = await _smartParser.ParseImageAsync<SimpleResult>(
     cvImageUrl,
-    ct,
-    "Extract the individual's name, approximate age (if stated), any professional title, and a concise summary of their experience.",
-    "If a professional title is not clearly stated, set it to null."
-);
+    """
+    Extract the individual's name, approximate age (if stated), any professional title, and a concise summary of their experience.
+    If a professional title is not clearly stated, set it to null.
+    """,
+    cancellationToken);
 
 if (result == null)
 {
