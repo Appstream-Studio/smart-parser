@@ -80,9 +80,9 @@ public class SimpleResult
 
 public class Example
 {
-    private readonly SmartParser _smartParser;
+    private readonly ISmartParser _smartParser;
 
-    public Example(SmartParser smartParser)
+    public Example(ISmartParser smartParser)
     {
         _smartParser = smartParser;
     }
