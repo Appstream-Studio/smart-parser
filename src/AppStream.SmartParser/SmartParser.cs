@@ -42,7 +42,7 @@ public interface ISmartParser
 
 
 internal class SmartParser(
-    [FromKeyedServices(nameof(SmartParserModule))] OpenAIClient openAIClient,
+    OpenAIClient openAIClient,
     IOptions<SmartParserOptions> options,
     IJsonSchemaGenerator schemaGenerator) : ISmartParser
 {
