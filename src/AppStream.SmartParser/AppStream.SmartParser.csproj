@@ -8,7 +8,7 @@
 		<RootNamespace>AppStream.SmartParser</RootNamespace>
 		<MajorVersion>1</MajorVersion>
 		<MinorVersion>0</MinorVersion>
-		<PatchVersion>2</PatchVersion>
+		<PatchVersion>3</PatchVersion>
 		<Version>$(MajorVersion).$(MinorVersion).$(PatchVersion)</Version>
 		<FileVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)</FileVersion>
 	</PropertyGroup>
@@ -21,8 +21,8 @@
 		<PackageTags>DataParsing DataTransformation LLM AI NaturalLanguageProcessing DataProcessing ParsingLibrary DataExtractor DataMapper</PackageTags>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/Appstream-Studio/durable-patterns</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/Appstream-Studio/durable-patterns.git</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Appstream-Studio/smart-parser</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Appstream-Studio/smart-parser.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
