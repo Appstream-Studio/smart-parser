@@ -22,8 +22,7 @@ public interface ISmartParser
     /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
     /// or <c>null</c> if the parsing process fails or produces no valid output.
     /// </returns>
-    Task<TResult?> ParseAsync<TResult>(string inputText, string? considerations = null, CancellationToken cancellationToken = default)
-        where TResult : class;
+    Task<TResult> ParseAsync<TResult>(string inputText, string? considerations = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Parses the provided image input, specified by its URL, into a structured result of type <typeparamref name="TResult"/>.
@@ -36,8 +35,7 @@ public interface ISmartParser
     /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
     /// or <c>null</c> if the parsing process fails or produces no valid output.
     /// </returns>
-    Task<TResult?> ParseImageAsync<TResult>(string imageUrl, string? considerations = null, CancellationToken cancellationToken = default)
-        where TResult : class;
+    Task<TResult> ParseImageAsync<TResult>(string imageUrl, string? considerations = null, CancellationToken cancellationToken = default);
 }
 
 
@@ -50,22 +48,19 @@ internal class SmartParser(
     private readonly OpenAIClient _openAIClient = openAIClient;
     private readonly IJsonSchemaGenerator _schemaGenerator = schemaGenerator;
 
-    public Task<TResult?> ParseAsync<TResult>(string inputText, string? considerations, CancellationToken cancellationToken)
-        where TResult : class
+    public Task<TResult> ParseAsync<TResult>(string inputText, string? considerations, CancellationToken cancellationToken)
     {
         return this.ParseAsyncInternal<TResult>(inputText, InputType.Text, considerations, cancellationToken);
     }
 
-    public Task<TResult?> ParseImageAsync<TResult>(string imageUrl, string? considerations, CancellationToken cancellationToken)
-        where TResult : class
+    public Task<TResult> ParseImageAsync<TResult>(string imageUrl, string? considerations, CancellationToken cancellationToken)
     {
         return this.ParseAsyncInternal<TResult>(imageUrl, InputType.ImageUrl, considerations, cancellationToken);
     }
 
     private enum InputType { Text, ImageUrl }
 
-    private async Task<TResult?> ParseAsyncInternal<TResult>(string input, InputType type, string? considerations, CancellationToken cancellationToken)
-        where TResult : class
+    private async Task<TResult> ParseAsyncInternal<TResult>(string input, InputType type, string? considerations, CancellationToken cancellationToken)
     {
         var chatClient = this._openAIClient.GetChatClient(this._options.DeploymentName);
         var messages = new List<ChatMessage>
@@ -80,35 +75,28 @@ internal class SmartParser(
         };
 
         var schema = this._schemaGenerator.GenerateSchema<TResult>();
-        if (schema != null)
+        var completionsOptions = new ChatCompletionOptions
         {
-            var completionsOptions = new ChatCompletionOptions
-            {
-                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                    "ExtractionResult",
-                    schema,
-                    jsonSchemaIsStrict: false)
-            };
+            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                "ExtractionResult",
+                schema,
+                jsonSchemaIsStrict: false)
+        };
 
-            var completions = await chatClient.CompleteChatAsync(messages, completionsOptions, cancellationToken);
+        var completions = await chatClient.CompleteChatAsync(messages, completionsOptions, cancellationToken);
+        var responseContent = completions.Value.Content[0].Text
+            ?? throw new InvalidOperationException("Chat completion response is null.");
 
-            var responseContent = completions.Value.Content[0].Text
-                ?? throw new InvalidOperationException($"Chat completion response is null.");
-
-            try
-            {
-                return JsonConvert.DeserializeObject<TResult>(responseContent);
-            }
-            catch (Exception e)
-            {
-                throw new ResponseDeserializationException(
-                    $"Deserializing response content into {typeof(TResult).Name} failed. Response content: '{responseContent}'",
-                    e);
-            }
+        try
+        {
+            return JsonConvert.DeserializeObject<TResult>(responseContent)
+                ?? throw new InvalidOperationException("Deserialized content is null.");
         }
-        else
+        catch (Exception e)
         {
-            return default;
+            throw new ResponseDeserializationException(
+                $"Deserializing response content into {typeof(TResult).Name} failed. Response content: '{responseContent}'",
+                e);
         }
     }
 

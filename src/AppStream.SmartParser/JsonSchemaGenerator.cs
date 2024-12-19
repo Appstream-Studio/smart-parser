@@ -4,12 +4,12 @@ namespace AppStream.SmartParser;
 
 internal interface IJsonSchemaGenerator
 {
-    BinaryData? GenerateSchema<TType>();
+    BinaryData GenerateSchema<TType>();
 }
 
 internal class JsonSchemaGenerator : IJsonSchemaGenerator
 {
-    public BinaryData? GenerateSchema<TType>()
+    public BinaryData GenerateSchema<TType>()
     {
         var schema = NJsonSchema.JsonSchema.FromType<TType>();
         var schemaData = schema.ToJson();
