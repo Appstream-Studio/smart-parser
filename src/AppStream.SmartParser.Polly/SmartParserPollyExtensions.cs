@@ -30,17 +30,17 @@ public static class SmartParserPollyExtensions
     /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
     /// or <c>null</c> if the parsing process fails or produces no valid output.
     /// </returns>
-    public static Task<TResult?> ParseWithRetryAsync<TResult>(
+    public static Task<TResult> ParseWithRetryAsync<TResult>(
         this ISmartParser smartParser,
         string inputText,
-        AsyncRetryPolicy? asyncRetryPolicy = null,
         string? considerations = null,
+        AsyncRetryPolicy? retryPolicy = null,
         CancellationToken cancellationToken = default)
         where TResult : class
     {
-        var retryPolicy = asyncRetryPolicy ?? DefaultRetryPolicy;
+        var policy = retryPolicy ?? DefaultRetryPolicy;
 
-        return retryPolicy.ExecuteAsync(
+        return policy.ExecuteAsync(
             ct => smartParser.ParseAsync<TResult>(inputText, considerations, ct),
             cancellationToken);
     }
@@ -58,17 +58,17 @@ public static class SmartParserPollyExtensions
     /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
     /// or <c>null</c> if the parsing process fails or produces no valid output.
     /// </returns>
-    public static Task<TResult?> ParseImageWithRetryAsync<TResult>(
+    public static Task<TResult> ParseImageWithRetryAsync<TResult>(
         this ISmartParser smartParser,
         string imageUrl,
-        AsyncRetryPolicy? asyncRetryPolicy = null,
         string? considerations = null,
+        AsyncRetryPolicy? retryPolicy = null,
         CancellationToken cancellationToken = default)
         where TResult : class
     {
-        var retryPolicy = asyncRetryPolicy ?? DefaultRetryPolicy;
+        var policy = retryPolicy ?? DefaultRetryPolicy;
 
-        return retryPolicy.ExecuteAsync(
+        return policy.ExecuteAsync(
             ct => smartParser.ParseImageAsync<TResult>(imageUrl, considerations, ct),
             cancellationToken);
     }

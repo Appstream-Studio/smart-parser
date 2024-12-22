@@ -8,6 +8,9 @@ public class SmartParserOptions
     public required string DeploymentName { get; set; }
 
     [Required]
+    public required int HttpClientNetworkTimeoutSeconds { get; set; }
+
+    [Required]
     public required string OpenAiEndpoint { get; set; }
 
     [Required]
