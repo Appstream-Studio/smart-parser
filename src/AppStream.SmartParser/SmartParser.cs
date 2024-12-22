@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OpenAI;
 using OpenAI.Chat;
+using System.ClientModel;
 
 namespace AppStream.SmartParser;
 
@@ -38,7 +38,6 @@ public interface ISmartParser
     Task<TResult> ParseImageAsync<TResult>(string imageUrl, string? considerations = null, CancellationToken cancellationToken = default);
 }
 
-
 internal class SmartParser(
     OpenAIClient openAIClient,
     IOptions<SmartParserOptions> options,
@@ -70,7 +69,7 @@ internal class SmartParser(
             {
                 InputType.Text => BuildUserMessage(input),
                 InputType.ImageUrl => BuildUserImageMessage(input),
-                _ => throw new ArgumentException("Incorrect type value provided")
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, $"'{type}' is not one of supported {nameof(InputType)}s.")
             }
         };
 
@@ -80,24 +79,27 @@ internal class SmartParser(
             ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
                 "ExtractionResult",
                 schema,
-                jsonSchemaIsStrict: false)
+                jsonSchemaIsStrict: false),
+            Temperature = 0
         };
 
         var completions = await chatClient.CompleteChatAsync(messages, completionsOptions, cancellationToken);
-        var responseContent = completions.Value.Content[0].Text
-            ?? throw new InvalidOperationException("Chat completion response is null.");
+        if (completions.Value.Content.Count == 0)
+        {
+            throw new UnexpectedCompletionsResponseException(
+                "Cannot parse input. Completions response does not have any contents.",
+                TryGetRawResponseContent(completions));
+        }
 
-        try
-        {
-            return JsonConvert.DeserializeObject<TResult>(responseContent)
-                ?? throw new InvalidOperationException("Deserialized content is null.");
-        }
-        catch (Exception e)
-        {
-            throw new ResponseDeserializationException(
-                $"Deserializing response content into {typeof(TResult).Name} failed. Response content: '{responseContent}'",
-                e);
-        }
+        var completionContent = completions.Value.Content[0].Text
+            ?? throw new UnexpectedCompletionsResponseException(
+                "Cannot parse input. Chat completion response is null.",
+                TryGetRawResponseContent(completions));
+
+        return DeserializeResult<TResult>(completionContent)
+            ?? throw new UnexpectedCompletionsResponseException(
+                "Cannot parse input. Deserialized content is null.",
+                TryGetRawResponseContent(completions));
     }
 
     private static UserChatMessage BuildUserMessage(string inputText)
@@ -137,8 +139,35 @@ internal class SmartParser(
         return ChatMessage.CreateSystemMessage(
             ChatMessageContentPart.CreateTextPart(systemText));
     }
+
+    private static TResult? DeserializeResult<TResult>(string completionContent)
+    {
+        try
+        {
+            return JsonConvert.DeserializeObject<TResult>(completionContent);
+        }
+        catch (Exception e)
+        {
+            throw new ResponseDeserializationException(
+                $"Deserializing completion content into {typeof(TResult).Name} failed. Completion content: '{completionContent}'",
+                e);
+        }
+    }
+
+    private static string? TryGetRawResponseContent(ClientResult<ChatCompletion> clientResult)
+    {
+        return clientResult.GetRawResponse().Content.ToString();
+    }
 }
 
 public class ResponseDeserializationException(string message, Exception inner) : Exception(message, inner)
 {
+}
+
+public class UnexpectedCompletionsResponseException : Exception
+{
+    public UnexpectedCompletionsResponseException(string message, string? rawResponse)
+        : base($"{message}{(rawResponse != null ? $" Raw response: {rawResponse}" : string.Empty)}")
+    {
+    }
 }

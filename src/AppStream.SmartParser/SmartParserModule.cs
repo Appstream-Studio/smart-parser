@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenAI;
 using System.ClientModel;
-using System.ClientModel.Primitives;
 
 namespace AppStream.SmartParser;
 
@@ -31,7 +30,7 @@ public static class SmartParserModule
                         new ApiKeyCredential(options.OpenAiCredentialKey),
                         new AzureOpenAIClientOptions
                         {
-                            RetryPolicy = new ClientRetryPolicy(3)
+                            NetworkTimeout = TimeSpan.FromSeconds(options.HttpClientNetworkTimeoutSeconds)
                         });
                 });
 
