@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AssemblyName>AppStream.SmartParser</AssemblyName>
 		<RootNamespace>AppStream.SmartParser</RootNamespace>
 		<MajorVersion>1</MajorVersion>
 		<MinorVersion>0</MinorVersion>
-		<PatchVersion>5</PatchVersion>
+		<PatchVersion>6</PatchVersion>
 		<Version>$(MajorVersion).$(MinorVersion).$(PatchVersion)</Version>
 		<FileVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)</FileVersion>
 	</PropertyGroup>
