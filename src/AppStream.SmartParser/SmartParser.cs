@@ -36,6 +36,20 @@ public interface ISmartParser
     /// or <c>null</c> if the parsing process fails or produces no valid output.
     /// </returns>
     Task<TResult> ParseImageAsync<TResult>(string imageUrl, string? considerations = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Parses the provided image input, specified by its URL, into a structured result of type <typeparamref name="TResult"/>.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the structured result to deserialize the parsed data into.</typeparam>
+    /// <param name="imageData">Image content.</param>
+    /// <param name="mimeType">The MIME type of the image, e.g., image/png</param>
+    /// <param name="considerations">Optional considerations or guidelines for the parsing process.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
+    /// or <c>null</c> if the parsing process fails or produces no valid output.
+    /// </returns>
+    Task<TResult> ParseImageAsync<TResult>(BinaryData imageData, string mimeType, string? considerations = null, CancellationToken cancellationToken = default);
 }
 
 internal class SmartParser(
@@ -49,28 +63,42 @@ internal class SmartParser(
 
     public Task<TResult> ParseAsync<TResult>(string inputText, string? considerations, CancellationToken cancellationToken)
     {
-        return this.ParseAsyncInternal<TResult>(inputText, InputType.Text, considerations, cancellationToken);
+        var userMessageContent = @$"
+            ---Begin input message---
+            {inputText}
+            ---End input message---";
+
+        var userMessage = ChatMessage.CreateUserMessage(
+            ChatMessageContentPart.CreateTextPart(userMessageContent));
+
+        return this.ParseInternalAsync<TResult>(userMessage, considerations, cancellationToken);
     }
 
     public Task<TResult> ParseImageAsync<TResult>(string imageUrl, string? considerations, CancellationToken cancellationToken)
     {
-        return this.ParseAsyncInternal<TResult>(imageUrl, InputType.ImageUrl, considerations, cancellationToken);
+        var userMessage = ChatMessage.CreateUserMessage(
+            ChatMessageContentPart.CreateImagePart(new Uri(imageUrl)));
+
+        return this.ParseInternalAsync<TResult>(userMessage, considerations, cancellationToken);
     }
 
-    private enum InputType { Text, ImageUrl }
+    public Task<TResult> ParseImageAsync<TResult>(BinaryData imageData, string mimeType, string? considerations = null, CancellationToken cancellationToken = default)
+    {
+        var userMessage = ChatMessage.CreateUserMessage(
+            ChatMessageContentPart.CreateImagePart(imageData, mimeType, ChatImageDetailLevel.High));
 
-    private async Task<TResult> ParseAsyncInternal<TResult>(string input, InputType type, string? considerations, CancellationToken cancellationToken)
+        return this.ParseInternalAsync<TResult>(userMessage, considerations, cancellationToken);
+    }
+
+    private enum InputType { Text, ImageUrl, ImageBinaryData }
+
+    private async Task<TResult> ParseInternalAsync<TResult>(ChatMessage userMessage, string? considerations, CancellationToken cancellationToken)
     {
         var chatClient = this._openAIClient.GetChatClient(this._options.DeploymentName);
         var messages = new List<ChatMessage>
         {
             BuildSystemMessage(considerations),
-            type switch
-            {
-                InputType.Text => BuildUserMessage(input),
-                InputType.ImageUrl => BuildUserImageMessage(input),
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, $"'{type}' is not one of supported {nameof(InputType)}s.")
-            }
+            userMessage
         };
 
         var schema = this._schemaGenerator.GenerateSchema<TResult>();
@@ -100,22 +128,6 @@ internal class SmartParser(
             ?? throw new UnexpectedCompletionsResponseException(
                 "Cannot parse input. Deserialized content is null.",
                 TryGetRawResponseContent(completions));
-    }
-
-    private static UserChatMessage BuildUserMessage(string inputText)
-    {
-        var userMessage = @$"
-            ---Begin input message---
-            {inputText}
-            ---End input message---";
-
-        return ChatMessage.CreateUserMessage(
-            ChatMessageContentPart.CreateTextPart(userMessage));
-    }
-
-    private static UserChatMessage BuildUserImageMessage(string imageUrl)
-    {
-        return ChatMessage.CreateUserMessage(ChatMessageContentPart.CreateImagePart(new Uri(imageUrl)));
     }
 
     private static SystemChatMessage BuildSystemMessage(string? considerations)
