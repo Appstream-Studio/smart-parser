@@ -23,8 +23,8 @@ public static class SmartParserPollyExtensions
     /// <typeparam name="TResult">The type of the structured result to deserialize the parsed data into.</typeparam>
     /// <param name="smartParser">The <see cref="ISmartParser"/> instance to execute the operation on.</param>
     /// <param name="inputText">The text input to parse.</param>
-    /// <param name="asyncRetryPolicy">The retry policy to apply. If <c>null</c>, a default retry policy will be used.</param>
     /// <param name="considerations">Optional considerations or guidelines for the parsing process.</param>
+    /// <param name="retryPolicy">The retry policy to apply. If <c>null</c>, a default retry policy will be used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
@@ -51,8 +51,8 @@ public static class SmartParserPollyExtensions
     /// <typeparam name="TResult">The type of the structured result to deserialize the parsed data into.</typeparam>
     /// <param name="smartParser">The <see cref="ISmartParser"/> instance to execute the operation on.</param>
     /// <param name="imageUrl">The URL of the image input to parse.</param>
-    /// <param name="asyncRetryPolicy">The retry policy to apply. If <c>null</c>, a default retry policy will be used.</param>
     /// <param name="considerations">Optional considerations or guidelines for the parsing process.</param>
+    /// <param name="retryPolicy">The retry policy to apply. If <c>null</c>, a default retry policy will be used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
