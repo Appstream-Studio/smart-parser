@@ -43,13 +43,19 @@ public interface ISmartParser
     /// <typeparam name="TResult">The type of the structured result to deserialize the parsed data into.</typeparam>
     /// <param name="imageData">Image content.</param>
     /// <param name="mimeType">The MIME type of the image, e.g., image/png</param>
+    /// <param name="imageDetailLevel">The level of detail with which the model should process the image and generate its textual understanding of it.</param>
     /// <param name="considerations">Optional considerations or guidelines for the parsing process.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result is an instance of <typeparamref name="TResult"/>,
     /// or <c>null</c> if the parsing process fails or produces no valid output.
     /// </returns>
-    Task<TResult> ParseImageAsync<TResult>(BinaryData imageData, string mimeType, string? considerations = null, CancellationToken cancellationToken = default);
+    Task<TResult> ParseImageAsync<TResult>(
+        BinaryData imageData,
+        string mimeType,
+        ChatImageDetailLevel? imageDetailLevel = null,
+        string? considerations = null,
+        CancellationToken cancellationToken = default);
 }
 
 internal class SmartParser(
@@ -82,10 +88,15 @@ internal class SmartParser(
         return this.ParseInternalAsync<TResult>(userMessage, considerations, cancellationToken);
     }
 
-    public Task<TResult> ParseImageAsync<TResult>(BinaryData imageData, string mimeType, string? considerations = null, CancellationToken cancellationToken = default)
+    public Task<TResult> ParseImageAsync<TResult>(
+        BinaryData imageData,
+        string mimeType,
+        ChatImageDetailLevel? imageDetailLevel = null,
+        string? considerations = null,
+        CancellationToken cancellationToken = default)
     {
         var userMessage = ChatMessage.CreateUserMessage(
-            ChatMessageContentPart.CreateImagePart(imageData, mimeType, ChatImageDetailLevel.High));
+            ChatMessageContentPart.CreateImagePart(imageData, mimeType, imageDetailLevel));
 
         return this.ParseInternalAsync<TResult>(userMessage, considerations, cancellationToken);
     }
