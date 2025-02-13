@@ -23,19 +23,6 @@ public static class SmartParserModule
             optionsBuilder => optionsBuilder.Configure(configureOptions));
     }
 
-    public static IServiceCollection AddSmartParser(this IServiceCollection services, SmartParserOptions options)
-    {
-        return AddSmartParser(
-            services,
-            opts =>
-            {
-                opts.DeploymentName = options.DeploymentName;
-                opts.HttpClientNetworkTimeoutSeconds = options.HttpClientNetworkTimeoutSeconds;
-                opts.OpenAiCredentialKey = options.OpenAiCredentialKey;
-                opts.OpenAiEndpoint = options.OpenAiEndpoint;
-            });
-    }
-
     private static IServiceCollection AddSmartParserInternal(
         IServiceCollection services, 
         Func<OptionsBuilder<SmartParserOptions>, OptionsBuilder<SmartParserOptions>> configureOptions)
