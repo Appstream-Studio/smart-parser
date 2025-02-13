@@ -8,14 +8,42 @@ namespace AppStream.SmartParser;
 
 public static class SmartParserModule
 {
+    public static IServiceCollection AddSmartParser<TDep>(this IServiceCollection services, Action<SmartParserOptions, TDep> configureOptions)
+        where TDep : class
+    {
+        return AddSmartParserInternal(
+            services,
+            optionsBuilder => optionsBuilder.Configure(configureOptions));
+    }
+
     public static IServiceCollection AddSmartParser(this IServiceCollection services, Action<SmartParserOptions> configureOptions)
+    {
+        return AddSmartParserInternal(
+            services,
+            optionsBuilder => optionsBuilder.Configure(configureOptions));
+    }
+
+    public static IServiceCollection AddSmartParser(this IServiceCollection services, SmartParserOptions options)
+    {
+        return AddSmartParser(
+            services,
+            opts =>
+            {
+                opts.DeploymentName = options.DeploymentName;
+                opts.HttpClientNetworkTimeoutSeconds = options.HttpClientNetworkTimeoutSeconds;
+                opts.OpenAiCredentialKey = options.OpenAiCredentialKey;
+                opts.OpenAiEndpoint = options.OpenAiEndpoint;
+            });
+    }
+
+    private static IServiceCollection AddSmartParserInternal(
+        IServiceCollection services, 
+        Func<OptionsBuilder<SmartParserOptions>, OptionsBuilder<SmartParserOptions>> configureOptions)
     {
         return services.AddSingleton(sp =>
         {
             var moduleServices = new ServiceCollection();
-            moduleServices
-                .AddOptions<SmartParserOptions>()
-                .Configure(configureOptions)
+            configureOptions(moduleServices.AddOptions<SmartParserOptions>())
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
