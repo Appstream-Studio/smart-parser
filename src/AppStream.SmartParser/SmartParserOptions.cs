@@ -15,4 +15,12 @@ public class SmartParserOptions
 
     [Required]
     public required string OpenAiCredentialKey { get; set; }
+
+    public void FromOther(SmartParserOptions other)
+    {
+        this.DeploymentName = other.DeploymentName;
+        this.HttpClientNetworkTimeoutSeconds = other.HttpClientNetworkTimeoutSeconds;
+        this.OpenAiEndpoint = other.OpenAiEndpoint;
+        this.OpenAiCredentialKey = other.OpenAiCredentialKey;
+    }
 }
