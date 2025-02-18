@@ -171,9 +171,7 @@ internal class SmartParser(
         }
         catch (Exception e)
         {
-            throw new ResponseDeserializationException(
-                $"Deserializing completion content into {typeof(TResult).Name} failed. Completion content: '{completionContent}'",
-                e);
+            throw new ResponseDeserializationException(typeof(TResult).Name, completionContent, e);
         }
     }
 
@@ -183,8 +181,15 @@ internal class SmartParser(
     }
 }
 
-public class ResponseDeserializationException(string message, Exception inner) : Exception(message, inner)
+public class ResponseDeserializationException : Exception
 {
+    public ResponseDeserializationException(string destTypeName, string completionContent, Exception inner)
+        : base($"Deserializing completion content into {destTypeName} failed. Completion content: '{completionContent}'", inner)
+    {
+        this.CompletionContent = completionContent;
+    }
+
+    public string CompletionContent { get; }
 }
 
 public class UnexpectedCompletionsResponseException : Exception
