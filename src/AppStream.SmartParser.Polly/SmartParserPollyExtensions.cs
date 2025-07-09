@@ -38,10 +38,10 @@ public static class SmartParserPollyExtensions
         CancellationToken cancellationToken = default)
         where TResult : class
     {
-        var policy = retryPolicy ?? DefaultRetryPolicy;
-
-        return policy.ExecuteAsync(
-            ct => smartParser.ParseAsync<TResult>(inputText, considerations, ct),
+        return ExecuteWithJsonRetryAsync(
+            (prompt, ct) => smartParser.ParseAsync<TResult>(prompt!, considerations, ct),
+            inputText,
+            retryPolicy,
             cancellationToken);
     }
 
@@ -66,10 +66,41 @@ public static class SmartParserPollyExtensions
         CancellationToken cancellationToken = default)
         where TResult : class
     {
-        var policy = retryPolicy ?? DefaultRetryPolicy;
-
-        return policy.ExecuteAsync(
-            ct => smartParser.ParseImageAsync<TResult>(imageUrl, considerations, ct),
+        return ExecuteWithJsonRetryAsync(
+            (prompt, ct) => smartParser.ParseImageAsync<TResult>(imageUrl, prompt, ct),
+            considerations,
+            retryPolicy,
             cancellationToken);
+    }
+
+    private static Task<TResult> ExecuteWithJsonRetryAsync<TResult>(
+        Func<string?, CancellationToken, Task<TResult>> parseFunc,
+        string? initialPrompt,
+        AsyncRetryPolicy? retryPolicy,
+        CancellationToken cancellationToken)
+    where TResult : class
+    {
+        var policy = retryPolicy ?? DefaultRetryPolicy;
+        string? lastPartial = null;
+
+        return policy.ExecuteAsync(async (ct) =>
+        {
+            var prompt = lastPartial is null ? initialPrompt :
+                $"{initialPrompt}\n\n# PREVIOUS OUTPUT (incomplete or incorrect):\n{lastPartial}\n# PLEASE CONTINUE AND RETURN COMPLETE AND CORRECT JSON.";
+
+            try
+            {
+                return await parseFunc(prompt, ct);
+            }
+            catch (ResponseDeserializationException ex)
+            {
+                lastPartial = ex.CompletionContent;
+                throw;
+            }
+            catch (UnexpectedCompletionsResponseException)
+            {
+                throw;
+            }
+        }, cancellationToken);
     }
 }
