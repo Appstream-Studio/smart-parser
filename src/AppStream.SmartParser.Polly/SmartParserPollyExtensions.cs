@@ -97,10 +97,6 @@ public static class SmartParserPollyExtensions
                 lastPartial = ex.CompletionContent;
                 throw;
             }
-            catch (UnexpectedCompletionsResponseException)
-            {
-                throw;
-            }
         }, cancellationToken);
     }
 }

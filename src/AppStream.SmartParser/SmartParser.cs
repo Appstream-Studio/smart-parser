@@ -126,9 +126,11 @@ internal class SmartParser(
         var reason = completions.Value.FinishReason;
 
         if (reason == ChatFinishReason.ContentFilter)
+        {
             throw new UnexpectedCompletionsResponseException(
                 "Filtered by the content filter.",
                 TryGetRawResponseContent(completions));
+        }
 
         if (reason == ChatFinishReason.Length)
         {
