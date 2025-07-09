@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\AppStream.SmartParser.Polly\AppStream.SmartParser.Polly.csproj" />
     <ProjectReference Include="..\..\src\AppStream.SmartParser\AppStream.SmartParser.csproj" />
   </ItemGroup>
 

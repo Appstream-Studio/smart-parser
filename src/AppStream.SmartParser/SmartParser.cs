@@ -123,6 +123,22 @@ internal class SmartParser(
         };
 
         var completions = await chatClient.CompleteChatAsync(messages, completionsOptions, cancellationToken);
+        var reason = completions.Value.FinishReason;
+
+        if (reason == ChatFinishReason.ContentFilter)
+        {
+            throw new UnexpectedCompletionsResponseException(
+                "Filtered by the content filter.",
+                TryGetRawResponseContent(completions));
+        }
+
+        if (reason == ChatFinishReason.Length)
+        {
+            throw new UnexpectedCompletionsResponseException(
+                "Model reached maximum number of tokens allowed.",
+                TryGetRawResponseContent(completions));
+        }
+
         if (completions.Value.Content.Count == 0)
         {
             throw new UnexpectedCompletionsResponseException(

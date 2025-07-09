@@ -10,6 +10,7 @@ internal class Program
         var serviceProvider = new ServiceCollection()
             .AddSmartParser(options =>
             {
+                options.HttpClientNetworkTimeoutSeconds = 10;
                 options.DeploymentName = "MyDeployment";
                 options.OpenAiEndpoint = "https://your-openai-endpoint.azure.com/";
                 options.OpenAiCredentialKey = "my-key";
@@ -34,7 +35,7 @@ internal class Program
             practices.
             """;
 
-        var result = await parser.ParseAsync<SimpleResult>(
+        var result = await parser.ParseWithRetryAsync<SimpleResult>(
             inputText,
             // Considerations (optional hints) for the parser:
             """
@@ -42,7 +43,7 @@ internal class Program
             - If a title isn't clearly stated, set it to null.
             - Keep the summary as concise as possible.
             """,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (result == null)
         {
