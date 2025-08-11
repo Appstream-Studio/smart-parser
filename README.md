@@ -75,6 +75,21 @@ services.AddSmartParser(configuration.GetSection("SmartParser").Bind);
 
 Note: If you do not pass a custom chat options configuration, the library defaults to `Temperature = 0` for deterministic outputs.
 
+Important: Some models do not support setting temperature. To avoid setting it, pass an empty completion options configuration delegate so no temperature is applied:
+
+```C#
+services.AddSmartParser(
+    options =>
+    {
+        options.DeploymentName = "MyDeployment";
+        options.OpenAiEndpoint = "https://your-openai-endpoint.azure.com/";
+        options.OpenAiCredentialKey = "my-key";
+        options.HttpClientNetworkTimeoutSeconds = 30;
+    },
+    _ => { } // do not set Temperature to support models without it
+);
+```
+
 # Usage
 Once you've configured SmartParser in your project, parsing is straightforward. Whether you're working with unstructured text or scanned images, SmartParser can help produce typed objects tailored to your needs.
 
