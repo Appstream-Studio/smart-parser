@@ -59,10 +59,12 @@ public interface ISmartParser
 }
 
 internal class SmartParser(
+    Action<ChatCompletionOptions> chatCompletionOptionsConfiguration,
     OpenAIClient openAIClient,
     IOptions<SmartParserOptions> options,
     IJsonSchemaGenerator schemaGenerator) : ISmartParser
 {
+    private readonly Action<ChatCompletionOptions> _chatCompletionOptionsConfiguration = chatCompletionOptionsConfiguration;
     private readonly SmartParserOptions _options = options.Value;
     private readonly OpenAIClient _openAIClient = openAIClient;
     private readonly IJsonSchemaGenerator _schemaGenerator = schemaGenerator;
@@ -113,14 +115,14 @@ internal class SmartParser(
         };
 
         var schema = this._schemaGenerator.GenerateSchema<TResult>();
-        var completionsOptions = new ChatCompletionOptions
-        {
-            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                "ExtractionResult",
-                schema,
-                jsonSchemaIsStrict: false),
-            Temperature = 0
-        };
+        var responseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+            jsonSchemaFormatName: "ExtractionResult",
+            jsonSchema: schema,
+            jsonSchemaIsStrict: false);
+
+        var completionsOptions = new ChatCompletionOptions();
+        this._chatCompletionOptionsConfiguration(completionsOptions);
+        completionsOptions.ResponseFormat = responseFormat;
 
         var completions = await chatClient.CompleteChatAsync(messages, completionsOptions, cancellationToken);
         var reason = completions.Value.FinishReason;
