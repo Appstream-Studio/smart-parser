@@ -115,15 +115,14 @@ internal class SmartParser(
         };
 
         var schema = this._schemaGenerator.GenerateSchema<TResult>();
-        var completionsOptions = new ChatCompletionOptions
-        {
-            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                "ExtractionResult",
-                schema,
-                jsonSchemaIsStrict: false)
-        };
+        var responseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+            jsonSchemaFormatName: "ExtractionResult",
+            jsonSchema: schema,
+            jsonSchemaIsStrict: false);
 
+        var completionsOptions = new ChatCompletionOptions();
         this._chatCompletionOptionsConfiguration(completionsOptions);
+        completionsOptions.ResponseFormat = responseFormat;
 
         var completions = await chatClient.CompleteChatAsync(messages, completionsOptions, cancellationToken);
         var reason = completions.Value.FinishReason;
