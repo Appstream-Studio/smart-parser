@@ -9,7 +9,7 @@
 
 ## Prerequisites:
 - .NET 9.0 or later
-- Access to an OpenAI API key (or other compatible LLM provider)
+- Azure OpenAI endpoint URL and API key
 
 ## Installation:
 Add the Smart-Parser package via NuGet:
@@ -23,12 +23,20 @@ dotnet add package AppStream.SmartParser
 ### Code-Based Configuration
 
 ```C#
-services.AddSmartParser(options =>
-{
-    options.DeploymentName = "MyDeployment";
-    options.OpenAiEndpoint = "https://your-openai-endpoint.azure.com/";
-    options.OpenAiCredentialKey = "my-key";
-});
+services.AddSmartParser(
+    options =>
+    {
+        options.DeploymentName = "MyDeployment";
+        options.OpenAiEndpoint = "https://your-openai-endpoint.azure.com/";
+        options.OpenAiCredentialKey = "my-key";
+        options.HttpClientNetworkTimeoutSeconds = 30; // required
+    },
+    // Optional: customize chat completion behavior (defaults to Temperature = 0 for determinism)
+    chatOptions =>
+    {
+        chatOptions.Temperature = 0.2;
+        // configure other options if desired
+    });
 ```
 
 ### Environment Variables
@@ -39,6 +47,7 @@ services.AddSmartParser(options =>
     options.DeploymentName = Environment.GetEnvironmentVariable("DEPLOYMENT_NAME") ?? "DefaultDeployment";
     options.OpenAiEndpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://your-openai-endpoint.azure.com/";
     options.OpenAiCredentialKey = Environment.GetEnvironmentVariable("OPENAI_CREDENTIAL_KEY") ?? "default-key";
+    options.HttpClientNetworkTimeoutSeconds = int.TryParse(Environment.GetEnvironmentVariable("HTTP_CLIENT_NETWORK_TIMEOUT_SECONDS"), out var s) ? s : 30;
 });
 ```
 
@@ -50,7 +59,8 @@ services.AddSmartParser(options =>
   "SmartParser": {
     "DeploymentName": "MyDeployment",
     "OpenAiEndpoint": "https://your-openai-endpoint.azure.com/",
-    "OpenAiCredentialKey": "my-key"
+    "OpenAiCredentialKey": "my-key",
+    "HttpClientNetworkTimeoutSeconds": 30
   }
 }
 ```
@@ -62,6 +72,8 @@ var configuration = new ConfigurationBuilder()
 
 services.AddSmartParser(configuration.GetSection("SmartParser").Bind);
 ```
+
+Note: If you do not pass a custom chat options configuration, the library defaults to `Temperature = 0` for deterministic outputs.
 
 # Usage
 Once you've configured SmartParser in your project, parsing is straightforward. Whether you're working with unstructured text or scanned images, SmartParser can help produce typed objects tailored to your needs.
@@ -152,6 +164,36 @@ Console.WriteLine($"Age: {result.Age}");
 Console.WriteLine($"Title: {(result.Title ?? "none")}");
 Console.WriteLine($"Summary: {result.Summary}");
 ```
+
+### Image (binary data)
+
+If you already have the image bytes (e.g., uploaded file), you can call the binary overload and optionally specify an image detail level:
+
+```C#
+var bytes = await File.ReadAllBytesAsync("cv.png", cancellationToken);
+var imageData = BinaryData.FromBytes(bytes);
+
+var result2 = await _smartParser.ParseImageAsync<SimpleResult>(
+    imageData,
+    mimeType: "image/png",
+    imageDetailLevel: OpenAI.Chat.ChatImageDetailLevel.High,
+    considerations: "Extract key profile details.",
+    cancellationToken);
+
+if (result2 == null)
+{
+    Console.WriteLine("CV parsing from binary image failed.");
+    return;
+}
+
+Console.WriteLine($"Name: {result2.Name}");
+```
+
+### Error handling
+
+The parser throws exceptions when the model response is unusable or cannot be deserialized:
+- `UnexpectedCompletionsResponseException`: content filtered, max tokens reached, or empty content
+- `ResponseDeserializationException`: completion content could not be deserialized into the requested type
 
 # Contributing
 Contributions to this open source library are highly appreciated! If you're interested in helping out, please feel free to submit a pull request with your changes. We welcome contributions of all kinds, whether it's bug fixes, new features, or just improving the documentation. Please ensure that your code is well-documented, tested, and adheres to the coding conventions used in the project. Don't hesitate to reach out if you have any questions or need help getting started. You can open an issue on GitHub or email us at contact@appstream.studio - we're happy to assist you in any way we can.
