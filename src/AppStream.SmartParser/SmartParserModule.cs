@@ -53,13 +53,16 @@ public static class SmartParserModule
                 .AddScoped<OpenAIClient>(sp =>
                 {
                     var options = sp.GetRequiredService<IOptions<SmartParserOptions>>().Value;
-                    return new AzureOpenAIClient(
-                        new Uri(options.OpenAiEndpoint),
-                        new ApiKeyCredential(options.OpenAiCredentialKey),
-                        new AzureOpenAIClientOptions
-                        {
-                            NetworkTimeout = TimeSpan.FromSeconds(options.HttpClientNetworkTimeoutSeconds)
-                        });
+                    var endpoint = new Uri(options.OpenAiEndpoint);
+                    var clientOptions = new AzureOpenAIClientOptions
+                    {
+                        NetworkTimeout = TimeSpan.FromSeconds(options.HttpClientNetworkTimeoutSeconds)
+                    };
+
+                    // Options validation guarantees exactly one of Credential / OpenAiCredentialKey is set.
+                    return options.Credential is not null
+                        ? new AzureOpenAIClient(endpoint, options.Credential, clientOptions)
+                        : new AzureOpenAIClient(endpoint, new ApiKeyCredential(options.OpenAiCredentialKey!), clientOptions);
                 });
 
             var moduleServiceProvider = moduleServices.BuildServiceProvider();
