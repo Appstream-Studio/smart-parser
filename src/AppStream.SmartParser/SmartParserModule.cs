@@ -59,7 +59,8 @@ public static class SmartParserModule
                         NetworkTimeout = TimeSpan.FromSeconds(options.HttpClientNetworkTimeoutSeconds)
                     };
 
-                    // Options validation guarantees exactly one of Credential / OpenAiCredentialKey is set.
+                    // Credential wins when both are set (a key may legitimately still arrive from bound config
+                    // during the keyless transition); validation only rejects neither-set.
                     return options.Credential is not null
                         ? new AzureOpenAIClient(endpoint, options.Credential, clientOptions)
                         : new AzureOpenAIClient(endpoint, new ApiKeyCredential(options.OpenAiCredentialKey!), clientOptions);

@@ -56,11 +56,13 @@ public class SmartParserOptionsTests
         Assert.Contains(results, r => r.MemberNames.Contains(nameof(SmartParserOptions.Credential)));
     }
 
+    // Both set is a legal transition state (credential adopted in code while the key still
+    // arrives from bound configuration, e.g. Key Vault) — Credential wins, no startup failure.
     [Fact]
-    public void Validate_WithBoth_Fails()
+    public void Validate_WithBoth_Passes()
     {
         var results = Validate(BuildOptions(key: "sk-test", credential: new FakeTokenCredential()));
 
-        Assert.Contains(results, r => r.MemberNames.Contains(nameof(SmartParserOptions.Credential)));
+        Assert.Empty(results);
     }
 }
